@@ -1,15 +1,5 @@
-import { Text, View } from "react-native";
+import Login from "./commponents/Home";
 
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text> hi</Text>
-    </View>
-  );
+  return <Login />;
 }
