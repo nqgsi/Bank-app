@@ -1,7 +1,9 @@
 // app/register.js
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useMutation } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+
 import React, { useState } from "react";
 import {
   Image,
@@ -12,9 +14,25 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 export default function Signupcreen() {
   const [image, setImage] = useState<string | null>(null);
+  // const [userInfo, setUserInfo] = useState({
+  //     username: "",
+  //     password: "",
+  //     image: "",
+  //   });
 
+  const signupMutation = async () => {
+    return Promise.resolve({ success: true });
+  };
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: signupMutation,
+    onSuccess: (data) => {
+      console.log("Sign up successfully:", data);
+    },
+  });
   const pickImage = async () => {
     // Request permission
     const permissionResult =
