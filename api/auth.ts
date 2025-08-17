@@ -1,4 +1,5 @@
 import instance from ".";
+import { storeToken } from "./storage";
 
 interface UserInfo {
   username: string;
@@ -9,12 +10,18 @@ interface ImageAndEmailInfo extends UserInfo {
 }
 const login = async (userInfo: UserInfo) => {
   const response = await instance.post("/auth/login", userInfo);
+  await storeToken(response.data.token);
+
+  console.log("🚀 ~ login ~ response:", response.data.token);
+
   return response.data;
 };
 
 const signupscreen = async (userInfo: FormData) => {
   const response = await instance.post("/auth/register", userInfo);
-  console.log("🚀 ~ signup ~ response:", response.data);
+  await storeToken(response.data.token);
+
+  console.log("🚀 ~ signup ~ response:", response.data.token);
   return response.data;
 };
 

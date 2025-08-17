@@ -1,4 +1,5 @@
 import { signupscreen } from "@/api/auth";
+import { getToken, storeToken } from "@/api/storage";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
@@ -25,11 +26,12 @@ export default function Signupcreen() {
   const { mutate, isPending } = useMutation({
     mutationFn: signupscreen,
     onSuccess: async (data) => {
-      data?.accessToken;
+      console.log(data.token);
 
-      console.log(data.accessToken);
+      storeToken(data.token);
 
       console.log("Sign up successfully:", data);
+      console.log("stored Token", await getToken());
     },
     onError: (err) => {
       console.log(`somthing went wrong : ${err}`);
@@ -84,6 +86,9 @@ export default function Signupcreen() {
 
       {/* Title */}
       <Text style={styles.title}>Sign Up</Text>
+      {userInfo.image && (
+        <Image source={{ uri: userInfo.image }} style={styles.profileImage} />
+      )}
 
       {/* Username */}
       <TextInput
@@ -119,10 +124,6 @@ export default function Signupcreen() {
           </Text>
         </View>
       </TouchableOpacity>
-
-      {userInfo.image && (
-        <Image source={{ uri: userInfo.image }} style={styles.profileImage} />
-      )}
 
       {/* Sign Up Button */}
       <TouchableOpacity style={styles.signUpButton} onPress={handlsubmit}>

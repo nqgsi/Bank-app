@@ -1,6 +1,9 @@
 // LoginScreen.js
+import { login } from "@/api/auth";
+import { getToken, storeToken } from "@/api/storage";
+import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -11,6 +14,19 @@ import {
 } from "react-native";
 
 export default function LoginScreen() {
+  const [userInfo, setUserInfo] = useState({
+    username: "",
+    password: "",
+  });
+  const { mutate, isPending } = useMutation({
+    mutationFn: login,
+    onSuccess: async (data) => {
+      storeToken(data.token);
+      console.log("Logged in successfully:", data);
+      console.log("stored Token", await getToken());
+    },
+  });
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -28,6 +44,7 @@ export default function LoginScreen() {
         style={styles.input}
         placeholder="Username"
         placeholderTextColor="#aaa"
+        onChangeText={(text) => setUserInfo({ ...userInfo, username: text })}
       />
 
       {/* Password Input */}
@@ -36,10 +53,14 @@ export default function LoginScreen() {
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry
+        onChangeText={(text) => setUserInfo({ ...userInfo, password: text })}
       />
 
       {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton}>
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => mutate(userInfo)}
+      >
         <Text style={styles.loginText}>Log in</Text>
       </TouchableOpacity>
     </View>
