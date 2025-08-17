@@ -4,7 +4,7 @@ interface UserInfo {
   username: string;
   password: string;
 }
-interface Imageinfo extends UserInfo {
+interface ImageAndEmailInfo extends UserInfo {
   image: string;
 }
 const login = async (userInfo: UserInfo) => {
@@ -12,10 +12,10 @@ const login = async (userInfo: UserInfo) => {
   return response.data;
 };
 
-const signupcreen = async (userInfo: Imageinfo) => {
+const signupscreen = async (userInfo: FormData) => {
   const response = await instance.post("/auth/register", userInfo);
   console.log("🚀 ~ signup ~ response:", response.data);
   return response.data;
 };
 
-export { Imageinfo, login, signupcreen, UserInfo };
+export { ImageAndEmailInfo, login, signupscreen, UserInfo };

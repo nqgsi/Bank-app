@@ -1,6 +1,7 @@
-// app/register.js
+import { signupscreen } from "@/api/auth";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useMutation } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 
@@ -16,34 +17,50 @@ import {
 } from "react-native";
 
 export default function Signupcreen() {
-  const [image, setImage] = useState<string | null>(null);
-  // const [userInfo, setUserInfo] = useState({
-  //     username: "",
-  //     password: "",
-  //     image: "",
-  //   });
-
-  const signupMutation = async () => {
-    return Promise.resolve({ success: true });
-  };
-
+  const [userInfo, setUserInfo] = useState({
+    username: "",
+    password: "",
+    image: "",
+  });
   const { mutate, isPending } = useMutation({
-    mutationFn: signupMutation,
-    onSuccess: (data) => {
+    mutationFn: signupscreen,
+    onSuccess: async (data) => {
+      data?.accessToken;
+
+      console.log(data.accessToken);
+
       console.log("Sign up successfully:", data);
     },
+    onError: (err) => {
+      console.log(`somthing went wrong : ${err}`);
+      if (isAxiosError(err)) {
+        console.error("Axios error:", err.message);
+        console.error("Status code:", err.response?.status);
+        console.error("Response data:", err.response?.data);
+      }
+    },
   });
+
+  const handlsubmit = () => {
+    const formdata = new FormData();
+
+    formdata.append("username", userInfo.username);
+    formdata.append("password", userInfo.password);
+    formdata.append("image", userInfo.image);
+    mutate(formdata);
+    console.log(userInfo);
+  };
+
   const pickImage = async () => {
-    // Request permission
+    // Request permission for the image
     const permissionResult =
       await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
       alert("Permission to access gallery is required!");
-      return;
     }
 
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [4, 3],
       quality: 1,
@@ -52,7 +69,7 @@ export default function Signupcreen() {
     console.log(result);
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      setUserInfo({ ...userInfo, image: result.assets[0].uri });
     }
   };
 
@@ -68,19 +85,12 @@ export default function Signupcreen() {
       {/* Title */}
       <Text style={styles.title}>Sign Up</Text>
 
-      {/* Email */}
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        keyboardType="email-address"
-      />
-
       {/* Username */}
       <TextInput
         style={styles.input}
         placeholder="Username"
         placeholderTextColor="#aaa"
+        onChangeText={(text) => setUserInfo({ ...userInfo, username: text })}
       />
 
       {/* Password */}
@@ -89,20 +99,33 @@ export default function Signupcreen() {
         placeholder="Password"
         placeholderTextColor="#aaa"
         secureTextEntry
+        onChangeText={(text) => setUserInfo({ ...userInfo, password: text })}
       />
 
       {/* Image Upload */}
       <TouchableOpacity style={styles.imageUploadButton} onPress={pickImage}>
-        <Text style={styles.imageUploadText}>
-          {image ? "Change Image" : "Upload Profile Image"}
-        </Text>
-        <AntDesign name="upload" size={24} color="#FFD700" />
+        <View
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+          }}
+        >
+          <View style={{ marginRight: 20 }}>
+            <AntDesign name="upload" size={24} color="#FFD700" />
+          </View>
+          <Text style={styles.imageUploadText}>
+            {userInfo.image ? "Change Image" : "Upload Profile Image"}
+          </Text>
+        </View>
       </TouchableOpacity>
 
-      {image && <Image source={{ uri: image }} style={styles.profileImage} />}
+      {userInfo.image && (
+        <Image source={{ uri: userInfo.image }} style={styles.profileImage} />
+      )}
 
       {/* Sign Up Button */}
-      <TouchableOpacity style={styles.signUpButton}>
+      <TouchableOpacity style={styles.signUpButton} onPress={handlsubmit}>
         <Text style={styles.signUpText}>Sign Up</Text>
       </TouchableOpacity>
     </View>
@@ -170,3 +193,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+// https://react-bank-project.api.joincoded.com/auth/register
+// https://react-bank-project.api.joincoded.com/mini-project/api/auth/register
