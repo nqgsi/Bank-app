@@ -23,6 +23,7 @@ export default function Signupcreen() {
     password: "",
     image: "",
   });
+  const [userImage, setuserImage] = useState<File | undefined>(undefined);
   const { mutate, isPending } = useMutation({
     mutationFn: signupscreen,
     onSuccess: async (data) => {
@@ -72,6 +73,7 @@ export default function Signupcreen() {
 
     if (!result.canceled) {
       setUserInfo({ ...userInfo, image: result.assets[0].uri });
+      setuserImage(result.assets[0].file);
     }
   };
 

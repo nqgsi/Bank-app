@@ -1,9 +1,10 @@
 // LoginScreen.js
 import { login } from "@/api/auth";
 import { getToken, storeToken } from "@/api/storage";
+import AuthContext from "@/app/context/AuthContext";
 import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -18,12 +19,15 @@ export default function LoginScreen() {
     username: "",
     password: "",
   });
+  const { setIsAuthenticated } = useContext(AuthContext);
   const { mutate, isPending } = useMutation({
     mutationFn: login,
     onSuccess: async (data) => {
       storeToken(data.token);
       console.log("Logged in successfully:", data);
       console.log("stored Token", await getToken());
+      setIsAuthenticated(true);
+      router.push("/(protect)/(tabs)");
     },
   });
 
