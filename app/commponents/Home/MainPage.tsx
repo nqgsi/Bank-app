@@ -1,16 +1,27 @@
 // MainPage.tsx
+import { getToken } from "@/api/storage";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import React from "react";
 import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
 
 const MainPage = () => {
+  const { data } = useQuery({
+    queryKey: ["userData"],
+    queryFn: getToken,
+  });
+  console.log("🚀 ~ MainPage ~ data:", data?.image);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <Ionicons name="person-circle-outline" size={40} color="#FFD700" />
+          <Image
+            source={data?.image}
+            style={{ borderRadius: "100%", width: 70, height: 70 }}
+          />
           <Image
             source={{
               uri: "https://static.vecteezy.com/system/resources/thumbnails/051/332/035/small_2x/golden-bank-building-icon-isolated-on-a-transparent-background-symbol-of-financial-institution-wealth-and-savings-png.png",

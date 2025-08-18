@@ -51,6 +51,7 @@ export default function Signupcreen() {
     formdata.append("password", userInfo.password);
     formdata.append("image", userInfo.image);
     mutate(formdata);
+    router.push(`/commponents/Home/LoginScreen`);
     console.log(userInfo);
   };
 
