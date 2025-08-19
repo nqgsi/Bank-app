@@ -1,17 +1,125 @@
-// MainPage.tsx
-import { getToken } from "@/api/storage";
+import instance from "@/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import React from "react";
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import {
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+// Fetch user profile
+const fetchProfile = async () => {
+  const res = await instance.get("/auth/me");
+  return res.data;
+};
+
+type UserData = {
+  image: string;
+  balance: number;
+  username?: string;
+};
 
 const MainPage = () => {
-  const { data } = useQuery({
+  const { data, refetch } = useQuery<UserData>({
     queryKey: ["userData"],
-    queryFn: getToken,
+    queryFn: fetchProfile,
   });
-  console.log("🚀 ~ MainPage ~ data:", data?.image);
+
+  const [showActions, setShowActions] = useState(false);
+
+  const handleDeposit = () => {
+    Alert.prompt("Deposit Amount", "Enter amount to deposit", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "OK",
+        onPress: async (amount) => {
+          const numericAmount = Number(amount);
+          if (!numericAmount || numericAmount <= 0) {
+            Alert.alert("Error", "Amount must be greater than 0");
+            return;
+          }
+          try {
+            await instance.put("/transactions/deposit", {
+              // deposit fund
+              amount: numericAmount,
+            });
+
+            Alert.alert("Success", "Deposit successful!");
+            refetch();
+          } catch (error) {
+            Alert.alert("Error", "Deposit failed");
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleWithdraw = () => {
+    Alert.prompt("Withdraw Amount", "Enter amount to withdraw", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "OK",
+        onPress: async (amount) => {
+          const numericAmount = Number(amount);
+          if (!numericAmount || numericAmount <= 0) {
+            Alert.alert("Error", "Amount must be greater than 0");
+            return;
+          }
+          try {
+            await instance.put("/transactions/withdraw", {
+              // withdrwa fund
+              amount: numericAmount,
+            });
+            Alert.alert("Success", "Withdraw successful!");
+            refetch();
+          } catch (error) {
+            Alert.alert("Error", "Withdraw failed");
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleTransfer = () => {
+    Alert.prompt("Transfer Amount", "Enter amount to transfer", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "OK",
+        onPress: async (amount) => {
+          const numericAmount = Number(amount);
+          if (!numericAmount || numericAmount <= 0) {
+            Alert.alert("Error", "Amount must be greater than 0");
+            return;
+          }
+          try {
+            await instance.put("/transactions/transfer", {
+              //transfer fund
+              amount: numericAmount,
+            });
+            Alert.alert("Success", "Transfer successful!");
+            refetch();
+          } catch (error) {
+            Alert.alert("Error", "Transfer failed");
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -19,8 +127,12 @@ const MainPage = () => {
         {/* Header */}
         <View style={styles.header}>
           <Image
-            source={data?.image}
-            style={{ borderRadius: "100%", width: 70, height: 70 }}
+            source={{
+              uri: data?.image
+                ? data.image
+                : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            }}
+            style={{ borderRadius: 100, width: 70, height: 70 }}
           />
           <Image
             source={{
@@ -33,51 +145,50 @@ const MainPage = () => {
 
         {/* Balance */}
         <Text style={styles.balanceLabel}>Your balance</Text>
-        <Text style={styles.balance}>$ 7,896</Text>
+        <Text style={styles.balance}>$ {data?.balance ?? 0}</Text>
 
-        {/* Cards Section */}
+        {/* Golden Card */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.cardsRow}
         >
-          <View style={[styles.card, { backgroundColor: "#d6f0f5" }]}>
-            <Text style={styles.cardTitle}>VISA</Text>
-            <Text style={styles.cardBalance}>$ 2,290</Text>
-            <Text style={styles.cardNumber}>•••• 6767</Text>
-          </View>
-          <View style={[styles.card, { backgroundColor: "#FFD700" }]}>
-            <Text style={styles.cardTitle}>VISA</Text>
-            <Text style={styles.cardBalance}>$ 5,566</Text>
-            <Text style={styles.cardNumber}>•••• 4552</Text>
-          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setShowActions(!showActions)}
+          >
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: "#FFD700", width: 220, height: 140 },
+              ]}
+            >
+              <Text style={[styles.cardTitle, { fontSize: 20 }]}>VISA</Text>
+              <Text style={[styles.cardBalance, { fontSize: 26 }]}>
+                $ {data?.balance ?? 0}
+              </Text>
+              <Text style={[styles.cardNumber, { fontSize: 16 }]}>
+                •••• 4552
+              </Text>
+            </View>
+          </TouchableOpacity>
         </ScrollView>
 
-        {/* Finance Shortcuts */}
-        <View style={styles.shortcuts}>
-          <View style={styles.shortcutItem}>
-            <Ionicons name="star-outline" size={28} color="#FFD700" />
-            <Text style={styles.shortcutText}>My favorite</Text>
+        {/* Card Actions (Deposit, Withdraw, Transfer) */}
+        {showActions && (
+          <View style={styles.actionsContainer}>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleDeposit}>
+              <Text style={styles.actionText}>Deposit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleWithdraw}>
+              <Text style={styles.actionText}>Withdraw</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionBtn} onPress={handleTransfer}>
+              <Text style={styles.actionText}>Transfer</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.shortcutItem}>
-            <Ionicons name="wallet-outline" size={28} color="#FFD700" />
-            <Text style={styles.shortcutText}>My budget</Text>
-          </View>
-          <View style={styles.shortcutItem}>
-            <Ionicons name="analytics-outline" size={28} color="#FFD700" />
-            <Text style={styles.shortcutText}>Finance analysis</Text>
-          </View>
-        </View>
+        )}
       </ScrollView>
-
-      {/* Bottom Nav */}
-      <View style={styles.bottomNav}>
-        {/* <Ionicons name="home-outline" size={24} color="#FFD700" />
-        <Ionicons name="card-outline" size={24} color="#fff" />
-        <Ionicons name="add-circle-outline" size={32} color="#fff" />
-        <Ionicons name="notifications-outline" size={24} color="#fff" />
-        <Ionicons name="person-outline" size={24} color="#fff" /> */}
-      </View>
     </SafeAreaView>
   );
 };
@@ -93,7 +204,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  logoText: { color: "#FFD700", fontSize: 18, fontWeight: "bold" },
   balanceLabel: { color: "#aaa", fontSize: 14 },
   balance: {
     color: "#fff",
@@ -103,38 +213,31 @@ const styles = StyleSheet.create({
   },
   cardsRow: { flexDirection: "row", marginBottom: 20 },
   card: {
-    width: 160,
-    borderRadius: 20,
-    padding: 15,
+    borderRadius: 25,
+    padding: 20,
     marginRight: 15,
+    justifyContent: "center",
   },
   cardTitle: { fontSize: 16, fontWeight: "bold" },
   cardBalance: { fontSize: 20, fontWeight: "bold", marginVertical: 10 },
   cardNumber: { fontSize: 14, color: "#333" },
+  actionsContainer: {
+    backgroundColor: "#111",
+    borderRadius: 15,
+    padding: 15,
+    marginTop: 15,
+  },
+  actionBtn: {
+    backgroundColor: "#FFD700",
+    padding: 12,
+    borderRadius: 12,
+    marginVertical: 5,
+    alignItems: "center",
+  },
+  actionText: { fontSize: 16, fontWeight: "bold", color: "#000" },
   shortcuts: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 20,
-  },
-  shortcutItem: {
-    backgroundColor: "#111",
-    padding: 15,
-    borderRadius: 15,
-    alignItems: "center",
-    width: 100,
-  },
-  shortcutText: {
-    color: "#fff",
-    fontSize: 12,
-    marginTop: 8,
-    textAlign: "center",
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    paddingVertical: 15,
-    backgroundColor: "#111",
-    borderTopWidth: 2,
-    borderTopColor: "#000000ff", // purple highlight line
   },
 });

@@ -24,9 +24,23 @@ const signupscreen = async (userInfo: FormData) => {
   console.log("🚀 ~ signup ~ response:", response.data.token);
   return response.data;
 };
-
+const getTransaction = async () => {
+  const res = await instance.get("/transactions/my");
+  return res.data;
+};
+const fetchProfile = async () => {
+  const res = await instance.get("/auth/me");
+  return res.data;
+};
 // const profilescreen = async () => {
 //   const response = await instance.get("/auth/me");
 //   await storeToken(response.data.token);
 // };
-export { ImageAndEmailInfo, login, signupscreen, UserInfo };
+export {
+  fetchProfile,
+  getTransaction,
+  ImageAndEmailInfo,
+  login,
+  signupscreen,
+  UserInfo,
+};

@@ -1,5 +1,4 @@
 import { createContext } from "react";
-
 interface ImageContextType {
   isUpload: boolean;
   setIsUpload: (isUpload: boolean) => void;
