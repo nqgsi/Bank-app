@@ -27,10 +27,11 @@ type UserData = {
 
 const MainPage = () => {
   const { data, refetch } = useQuery<UserData>({
-    queryKey: ["userData"],
+    queryKey: ["profile"], // unified key
     queryFn: fetchProfile,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
-
   const [showActions, setShowActions] = useState(false);
 
   const handleDeposit = () => {
@@ -92,34 +93,34 @@ const MainPage = () => {
     ]);
   };
 
-  const handleTransfer = () => {
-    Alert.prompt("Transfer Amount", "Enter amount to transfer", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
-      {
-        text: "OK",
-        onPress: async (amount) => {
-          const numericAmount = Number(amount);
-          if (!numericAmount || numericAmount <= 0) {
-            Alert.alert("Error", "Amount must be greater than 0");
-            return;
-          }
-          try {
-            await instance.put("/transactions/transfer", {
-              //transfer fund
-              amount: numericAmount,
-            });
-            Alert.alert("Success", "Transfer successful!");
-            refetch();
-          } catch (error) {
-            Alert.alert("Error", "Transfer failed");
-          }
-        },
-      },
-    ]);
-  };
+  // const handleTransfer = () => {
+  //   Alert.prompt("Transfer Amount", "Enter amount to transfer", [
+  //     {
+  //       text: "Cancel",
+  //       style: "cancel",
+  //     },
+  //     {
+  //       text: "OK",
+  //       onPress: async (amount) => {
+  //         const numericAmount = Number(amount);
+  //         if (!numericAmount || numericAmount <= 0) {
+  //           Alert.alert("Error", "Amount must be greater than 0");
+  //           return;
+  //         }
+  //         try {
+  //           await instance.put(`/transactions/transfer/${data?.username}`, {
+  //             //transfer fund
+  //             amount: numericAmount,
+  //           });
+  //           Alert.alert("Success", "Transfer successful!");
+  //           refetch();
+  //         } catch (error) {
+  //           Alert.alert("Error", "Transfer failed");
+  //         }
+  //       },
+  //     },
+  //   ]);
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -183,9 +184,9 @@ const MainPage = () => {
             <TouchableOpacity style={styles.actionBtn} onPress={handleWithdraw}>
               <Text style={styles.actionText}>Withdraw</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionBtn} onPress={handleTransfer}>
+            {/* <TouchableOpacity style={styles.actionBtn} onPress={handleTransfer}>
               <Text style={styles.actionText}>Transfer</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         )}
       </ScrollView>

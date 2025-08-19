@@ -29,7 +29,18 @@ const getTransaction = async () => {
   return res.data;
 };
 const fetchProfile = async () => {
+  console.log("🔄 Fetching profile...");
   const res = await instance.get("/auth/me");
+  console.log("✅ Profile fetched:", res.data);
+
+  return res.data;
+};
+const getUsers = async () => {
+  const res = await instance.get("/auth/users");
+  return res.data;
+};
+const trancferToUser = async () => {
+  const res = await instance.put("/transactions/transfer/<username>", {});
   return res.data;
 };
 // const profilescreen = async () => {
@@ -39,8 +50,10 @@ const fetchProfile = async () => {
 export {
   fetchProfile,
   getTransaction,
+  getUsers,
   ImageAndEmailInfo,
   login,
   signupscreen,
+  trancferToUser,
   UserInfo,
 };
