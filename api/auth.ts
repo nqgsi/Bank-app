@@ -25,4 +25,8 @@ const signupscreen = async (userInfo: FormData) => {
   return response.data;
 };
 
+// const profilescreen = async () => {
+//   const response = await instance.get("/auth/me");
+//   await storeToken(response.data.token);
+// };
 export { ImageAndEmailInfo, login, signupscreen, UserInfo };

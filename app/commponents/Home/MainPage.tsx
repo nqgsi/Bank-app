@@ -72,11 +72,11 @@ const MainPage = () => {
 
       {/* Bottom Nav */}
       <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#FFD700" />
+        {/* <Ionicons name="home-outline" size={24} color="#FFD700" />
         <Ionicons name="card-outline" size={24} color="#fff" />
         <Ionicons name="add-circle-outline" size={32} color="#fff" />
         <Ionicons name="notifications-outline" size={24} color="#fff" />
-        <Ionicons name="person-outline" size={24} color="#fff" />
+        <Ionicons name="person-outline" size={24} color="#fff" /> */}
       </View>
     </SafeAreaView>
   );
@@ -135,6 +135,6 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     backgroundColor: "#111",
     borderTopWidth: 2,
-    borderTopColor: "#8000ff", // purple highlight line
+    borderTopColor: "#000000ff", // purple highlight line
   },
 });
