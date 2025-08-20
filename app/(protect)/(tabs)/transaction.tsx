@@ -33,13 +33,22 @@ const TransactionScreen = () => {
   const transactions = data || [];
 
   //  Filter transactions
+
+  const startOfDay = new Date(fromDate);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(toDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
   const filteredTransactions = transactions.filter((t: any) => {
     const tDate = new Date(t.createdAt);
-    const inDateRange = tDate >= fromDate && tDate <= toDate;
+
+    const inDateRange = tDate >= startOfDay && tDate <= endOfDay;
     const typeMatch =
       filterType === "All" || t.type.toLowerCase() === filterType.toLowerCase();
     const amountMatch =
       searchAmount === "" || t.amount.toString().includes(searchAmount);
+
     return inDateRange && typeMatch && amountMatch;
   });
 

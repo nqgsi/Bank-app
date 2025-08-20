@@ -15,24 +15,15 @@ export default function App() {
       <StatusBar barStyle="light-content" />
 
       {/* Top Logo */}
-      <Image
-        source={{
-          uri: "https://static.vecteezy.com/system/resources/thumbnails/051/332/035/small_2x/golden-bank-building-icon-isolated-on-a-transparent-background-symbol-of-financial-institution-wealth-and-savings-png.png",
-        }}
-        style={styles.logoTop}
-        resizeMode="contain"
-      />
 
       {/* Middle Content */}
       <View style={styles.centerContent}>
         <Image
-          source={{
-            uri: "https://static.vecteezy.com/system/resources/thumbnails/051/332/035/small_2x/golden-bank-building-icon-isolated-on-a-transparent-background-symbol-of-financial-institution-wealth-and-savings-png.png",
-          }}
+          source={require("../assets/images/gold.png")}
           style={styles.logoMiddle}
           resizeMode="contain"
         />
-        <Text style={{ color: "#FDD700", marginBottom: 30 }}>Golden Bank</Text>
+
         {/* Log In Button */}
         <TouchableOpacity
           style={styles.loginButton}
@@ -71,9 +62,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoMiddle: {
-    width: 150,
-    height: 80,
-    marginBottom: 40,
+    width: 250,
+    height: 250,
+    marginBottom: 10,
   },
   loginButton: {
     backgroundColor: "#FFD700", // gold

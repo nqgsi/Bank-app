@@ -1,6 +1,6 @@
 import instance from "@/api";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -31,6 +31,7 @@ type UserData = {
 };
 
 const MainPage = () => {
+  const queryClient = useQueryClient();
   const phoneNumber = "+965 1 888 666";
   const handleCall = () => {
     const url = `tel:${phoneNumber}`;
@@ -71,6 +72,7 @@ const MainPage = () => {
             });
             Alert.alert("Success", "Deposit successful!");
             refetch();
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
           } catch (error) {
             Alert.alert("Error", "Deposit failed");
           }
@@ -96,6 +98,7 @@ const MainPage = () => {
             });
             Alert.alert("Success", "Withdraw successful!");
             refetch();
+            queryClient.invalidateQueries({ queryKey: ["transactions"] });
           } catch (error) {
             Alert.alert("Error", "Withdraw failed");
           }
@@ -120,13 +123,11 @@ const MainPage = () => {
             />
           </TouchableOpacity>
           <Image
-            source={{
-              uri: "https://static.vecteezy.com/system/resources/thumbnails/051/332/035/small_2x/golden-bank-building-icon-isolated-on-a-transparent-background-symbol-of-financial-institution-wealth-and-savings-png.png",
-            }}
-            style={{ width: 50, height: 50 }}
+            source={require("../../../assets/images/gold.png")}
+            style={{ width: 80, height: 80, marginRight: 10 }}
           />
           <TouchableOpacity onPress={handleCall}>
-            <Ionicons name="call-outline" size={24} color="#fff" />
+            <Ionicons name="headset-outline" size={24} color="#fff" />
           </TouchableOpacity>
         </View>
 

@@ -59,6 +59,7 @@ export default function UsersPage() {
             Alert.alert("Success", "Transfer successful!");
             queryClient.invalidateQueries({ queryKey: ["users"] }); // this screen
             queryClient.invalidateQueries({ queryKey: ["profile"] }); // MainPage + ProfileScreen
+            queryClient.invalidateQueries({ queryKey: ["transactions"] }); // this screen
           } catch (error) {
             Alert.alert("Error", "Transfer failed");
           }
