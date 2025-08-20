@@ -16,7 +16,7 @@ const TransactionScreen = () => {
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
   const [fromDate, setFromDate] = useState(new Date("2024-05-01"));
-  const [toDate, setToDate] = useState(new Date("2024-12-31"));
+  const [toDate, setToDate] = useState(new Date("2025-12-31"));
   const [filterType, setFilterType] = useState("All");
   const [searchAmount, setSearchAmount] = useState("");
 
@@ -29,126 +29,130 @@ const TransactionScreen = () => {
   if (isError)
     return <Text style={{ color: "white" }}>Error loading data.</Text>;
 
-  const transactions = data.transactions || [];
+  // API returns an array directly not the object
+  const transactions = data || [];
 
-  // Filter transactions
+  //  Filter transactions
   const filteredTransactions = transactions.filter((t: any) => {
-    const tDate = new Date(t.date);
+    const tDate = new Date(t.createdAt);
     const inDateRange = tDate >= fromDate && tDate <= toDate;
     const typeMatch =
-      filterType === "All" || t.type === filterType.toLowerCase();
+      filterType === "All" || t.type.toLowerCase() === filterType.toLowerCase();
     const amountMatch =
       searchAmount === "" || t.amount.toString().includes(searchAmount);
     return inDateRange && typeMatch && amountMatch;
   });
 
-  // Render each transaction
+  //  Render each transaction
   const renderItem = ({ item }: { item: any }) => (
     <View style={styles.transactionCard}>
       <Text
         style={[
           styles.amount,
-          { color: item.amount > 0 ? "#4CAF50" : "#FF4C4C" },
+          { color: item.type === "deposit" ? "#4CAF50" : "#FF4C4C" },
         ]}
       >
-        {item.amount > 0 ? `+ ${item.amount}` : `${item.amount}`}
+        {item.type === "deposit" ? `+ ${item.amount}` : `- ${item.amount}`}
       </Text>
       <Text style={styles.date}>
-        {new Date(item.date).toLocaleDateString()}
+        {new Date(item.createdAt).toLocaleDateString()}
       </Text>
       <Text style={styles.type}>{item.type}</Text>
     </View>
   );
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContent}>
-      <View style={styles.container}>
-        <Text style={styles.pageTitle}>Transactions</Text>
-        {/* Search by Amount */}
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by amount..."
-          placeholderTextColor="#888"
-          keyboardType="numeric"
-          value={searchAmount}
-          onChangeText={setSearchAmount}
-        />
+    <View style={{ flex: 1, backgroundColor: "black" }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.container}>
+          <Text style={styles.pageTitle}>Transactions</Text>
 
-        {/* Filter Buttons */}
-        <View style={styles.filterContainer}>
-          {["All", "Deposit", "Withdraw", "Transfer"].map((type) => (
-            <TouchableOpacity
-              key={type}
-              style={[
-                styles.filterBtn,
-                filterType === type && styles.activeFilterBtn,
-              ]}
-              onPress={() => setFilterType(type)}
-            >
-              <Text
+          {/* Search by Amount */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by amount..."
+            placeholderTextColor="#888"
+            keyboardType="numeric"
+            value={searchAmount}
+            onChangeText={setSearchAmount}
+          />
+
+          {/* Filter Buttons */}
+          <View style={styles.filterContainer}>
+            {["All", "Deposit", "Withdraw", "Transfer"].map((type) => (
+              <TouchableOpacity
+                key={type}
                 style={[
-                  styles.filterText,
-                  filterType === type && styles.activeFilterText,
+                  styles.filterBtn,
+                  filterType === type && styles.activeFilterBtn,
                 ]}
+                onPress={() => setFilterType(type)}
               >
-                {type}
+                <Text
+                  style={[
+                    styles.filterText,
+                    filterType === type && styles.activeFilterText,
+                  ]}
+                >
+                  {type}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Date Range */}
+          <View style={styles.dateContainer}>
+            <TouchableOpacity onPress={() => setShowFromPicker(true)}>
+              <Text style={styles.dateText}>
+                From: {fromDate.toLocaleDateString()}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
+            <TouchableOpacity onPress={() => setShowToPicker(true)}>
+              <Text style={styles.dateText}>
+                To: {toDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Date Range */}
-        <View style={styles.dateContainer}>
-          <TouchableOpacity onPress={() => setShowFromPicker(true)}>
-            <Text style={styles.dateText}>
-              From: {fromDate.toLocaleDateString()}
+          {showFromPicker && (
+            <DateTimePicker
+              value={fromDate}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowFromPicker(false);
+                if (date) setFromDate(date);
+              }}
+            />
+          )}
+          {showToPicker && (
+            <DateTimePicker
+              value={toDate}
+              mode="date"
+              display="default"
+              onChange={(e, date) => {
+                setShowToPicker(false);
+                if (date) setToDate(date);
+              }}
+            />
+          )}
+
+          {/* Transactions List */}
+          {filteredTransactions.length > 0 ? (
+            <FlatList
+              data={filteredTransactions}
+              renderItem={renderItem}
+              keyExtractor={(item) => item._id}
+              contentContainerStyle={{ marginTop: 20 }}
+            />
+          ) : (
+            <Text style={{ color: "white", marginTop: 20 }}>
+              No transactions found.
             </Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowToPicker(true)}>
-            <Text style={styles.dateText}>
-              To: {toDate.toLocaleDateString()}
-            </Text>
-          </TouchableOpacity>
+          )}
         </View>
-
-        {showFromPicker && (
-          <DateTimePicker
-            value={fromDate}
-            mode="date"
-            display="default"
-            onChange={(e, date) => {
-              setShowFromPicker(false);
-              if (date) setFromDate(date);
-            }}
-          />
-        )}
-        {showToPicker && (
-          <DateTimePicker
-            value={toDate}
-            mode="date"
-            display="default"
-            onChange={(e, date) => {
-              setShowToPicker(false);
-              if (date) setToDate(date);
-            }}
-          />
-        )}
-
-        {/* Transactions List */}
-        {filteredTransactions.length > 0 ? (
-          <FlatList
-            data={filteredTransactions}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ marginTop: 20 }}
-          />
-        ) : (
-          <Text style={{ color: "white", marginTop: 20 }}>
-            No transactions found.
-          </Text>
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 

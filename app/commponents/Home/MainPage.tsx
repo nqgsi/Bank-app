@@ -2,9 +2,12 @@ import instance from "@/api";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
+  Dimensions,
+  Linking,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,6 +15,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
+const screenWidth = Dimensions.get("window").width;
 
 // Fetch user profile
 const fetchProfile = async () => {
@@ -26,20 +31,32 @@ type UserData = {
 };
 
 const MainPage = () => {
+  const phoneNumber = "+965 1 888 666";
+  const handleCall = () => {
+    const url = `tel:${phoneNumber}`;
+    Linking.canOpenURL(url)
+      .then((supported) => {
+        if (!supported) {
+          Alert.alert("Error", "Calling is not supported on this device");
+        } else {
+          return Linking.openURL(url);
+        }
+      })
+      .catch((err) => console.error(err));
+  };
+
   const { data, refetch } = useQuery<UserData>({
-    queryKey: ["profile"], // unified key
+    queryKey: ["profile"],
     queryFn: fetchProfile,
     refetchOnMount: "always",
     refetchOnWindowFocus: true,
   });
+
   const [showActions, setShowActions] = useState(false);
 
   const handleDeposit = () => {
     Alert.prompt("Deposit Amount", "Enter amount to deposit", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "OK",
         onPress: async (amount) => {
@@ -50,10 +67,8 @@ const MainPage = () => {
           }
           try {
             await instance.put("/transactions/deposit", {
-              // deposit fund
               amount: numericAmount,
             });
-
             Alert.alert("Success", "Deposit successful!");
             refetch();
           } catch (error) {
@@ -66,10 +81,7 @@ const MainPage = () => {
 
   const handleWithdraw = () => {
     Alert.prompt("Withdraw Amount", "Enter amount to withdraw", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "OK",
         onPress: async (amount) => {
@@ -80,7 +92,6 @@ const MainPage = () => {
           }
           try {
             await instance.put("/transactions/withdraw", {
-              // withdrwa fund
               amount: numericAmount,
             });
             Alert.alert("Success", "Withdraw successful!");
@@ -93,55 +104,30 @@ const MainPage = () => {
     ]);
   };
 
-  // const handleTransfer = () => {
-  //   Alert.prompt("Transfer Amount", "Enter amount to transfer", [
-  //     {
-  //       text: "Cancel",
-  //       style: "cancel",
-  //     },
-  //     {
-  //       text: "OK",
-  //       onPress: async (amount) => {
-  //         const numericAmount = Number(amount);
-  //         if (!numericAmount || numericAmount <= 0) {
-  //           Alert.alert("Error", "Amount must be greater than 0");
-  //           return;
-  //         }
-  //         try {
-  //           await instance.put(`/transactions/transfer/${data?.username}`, {
-  //             //transfer fund
-  //             amount: numericAmount,
-  //           });
-  //           Alert.alert("Success", "Transfer successful!");
-  //           refetch();
-  //         } catch (error) {
-  //           Alert.alert("Error", "Transfer failed");
-  //         }
-  //       },
-  //     },
-  //   ]);
-  // };
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Header */}
         <View style={styles.header}>
-          <Image
-            source={{
-              uri: data?.image
-                ? data.image
-                : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-            }}
-            style={{ borderRadius: 100, width: 70, height: 70 }}
-          />
+          <TouchableOpacity onPress={() => router.push("/profileScreen")}>
+            <Image
+              source={{
+                uri: data?.image
+                  ? data.image
+                  : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+              }}
+              style={{ borderRadius: 100, width: 50, height: 50 }}
+            />
+          </TouchableOpacity>
           <Image
             source={{
               uri: "https://static.vecteezy.com/system/resources/thumbnails/051/332/035/small_2x/golden-bank-building-icon-isolated-on-a-transparent-background-symbol-of-financial-institution-wealth-and-savings-png.png",
             }}
             style={{ width: 50, height: 50 }}
           />
-          <Ionicons name="search-outline" size={24} color="#fff" />
+          <TouchableOpacity onPress={handleCall}>
+            <Ionicons name="call-outline" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
 
         {/* Balance */}
@@ -175,7 +161,7 @@ const MainPage = () => {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Card Actions (Deposit, Withdraw, Transfer) */}
+        {/* Card Actions */}
         {showActions && (
           <View style={styles.actionsContainer}>
             <TouchableOpacity style={styles.actionBtn} onPress={handleDeposit}>
@@ -184,11 +170,64 @@ const MainPage = () => {
             <TouchableOpacity style={styles.actionBtn} onPress={handleWithdraw}>
               <Text style={styles.actionText}>Withdraw</Text>
             </TouchableOpacity>
-            {/* <TouchableOpacity style={styles.actionBtn} onPress={handleTransfer}>
-              <Text style={styles.actionText}>Transfer</Text>
-            </TouchableOpacity> */}
           </View>
         )}
+
+        {/* Discount Card */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.discountRow}
+          contentContainerStyle={{ paddingHorizontal: 10 }}
+        >
+          <View style={styles.discountCard}>
+            <Text style={styles.discountTitle}>🎉 Special Discount!</Text>
+            <Text style={styles.discountText}>
+              You have a discount because you are our client
+            </Text>
+          </View>
+        </ScrollView>
+
+        {/* Ads Section */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.adsRow}
+          contentContainerStyle={{ paddingHorizontal: 10 }}
+        >
+          {/*  Airways ad */}
+          <View style={styles.adsContainer}>
+            <Image
+              source={{
+                uri: "https://brandslogos.com/wp-content/uploads/images/large/emirates-airlines-logo-1.png",
+              }}
+              style={styles.adsCard}
+            />
+            <Text style={styles.adsDiscount}>10% OFF</Text>
+          </View>
+
+          {/* hotel ad */}
+          <View style={styles.adsContainer}>
+            <Image
+              source={{
+                uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4lRwRJe1JwHTJA3HqCkOGv0m_MFf39eq02Q&s",
+              }}
+              style={styles.adsCard}
+            />
+            <Text style={styles.adsDiscount}>15% OFF</Text>
+          </View>
+
+          {/* Example ad 2 */}
+          <View style={styles.adsContainer}>
+            <Image
+              source={{
+                uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm8iDtcT54Vp8ImvTddzQssFfj5YRDEnlk7Q&s",
+              }}
+              style={styles.adsCard}
+            />
+            <Text style={styles.adsDiscount}>20% OFF</Text>
+          </View>
+        </ScrollView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -212,7 +251,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
   },
-  cardsRow: { flexDirection: "row", marginBottom: 20 },
+  cardsRow: { flexDirection: "row", marginBottom: 15 },
   card: {
     borderRadius: 25,
     padding: 20,
@@ -226,7 +265,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     borderRadius: 15,
     padding: 15,
-    marginTop: 15,
+    marginBottom: 20,
   },
   actionBtn: {
     backgroundColor: "#FFD700",
@@ -236,9 +275,35 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionText: { fontSize: 16, fontWeight: "bold", color: "#000" },
-  shortcuts: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
+  discountRow: { marginBottom: 15 },
+  discountCard: {
+    backgroundColor: "#FFD700",
+    padding: 15,
+    borderRadius: 20,
+    width: 250,
+    justifyContent: "center",
+  },
+  discountTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  discountText: {
+    fontSize: 14,
+    color: "#000",
+  },
+  adsRow: { marginBottom: 20 },
+  adsContainer: { alignItems: "center", marginRight: 15 },
+  adsCard: {
+    width: screenWidth * 0.6,
+    height: screenWidth * 0.4,
+    borderRadius: 15,
+    resizeMode: "cover",
+  },
+  adsDiscount: {
+    color: "#FFD700",
+    fontWeight: "bold",
+    marginTop: 5,
+    fontSize: 16,
   },
 });

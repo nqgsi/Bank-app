@@ -1,4 +1,4 @@
-import MainPage from "@/app/commponents/Home/MainPage";
+import MainPage from "@/app/commponents/Home/mainpage";
 import React from "react";
 
 const index = () => {

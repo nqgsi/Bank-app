@@ -43,6 +43,7 @@ const trancferToUser = async () => {
   const res = await instance.put("/transactions/transfer/<username>", {});
   return res.data;
 };
+
 // const profilescreen = async () => {
 //   const response = await instance.get("/auth/me");
 //   await storeToken(response.data.token);

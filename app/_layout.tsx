@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import AuthContext from "./context/AuthContext";
 export default function RootLayout() {
   const queryClient = new QueryClient();
@@ -12,7 +13,10 @@ export default function RootLayout() {
   useEffect(() => {
     const checkToken = async () => {
       const token = await getToken();
-      setIsAuthenticated(true);
+      console.log("🚀 ~ checkToken ~ token:", token);
+      if (token) {
+        setIsAuthenticated(true);
+      }
       setIsReady(true);
     };
     checkToken();
@@ -22,29 +26,31 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
-        <Stack>
-          <Stack.Screen
-            name="index"
-            options={{ headerShown: false }} //title: "Home🏦",
-          />
-          <Stack.Screen
-            name="commponents/Home/LoginScreen"
-            options={{ headerShown: false }} //title: "Login🏦",
-          />
-          <Stack.Screen
-            name="commponents/Home/Signupscreen"
-            options={{ headerShown: false }} //title: "Become a client💳",
-          />
-          <Stack.Protected guard={isAuthenticated}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "black" }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated }}>
+          <Stack>
             <Stack.Screen
-              name="(protect)/(tabs)"
-              options={{ headerShown: false }}
-            ></Stack.Screen>
-          </Stack.Protected>
-        </Stack>
-      </AuthContext.Provider>
-    </QueryClientProvider>
+              name="loginpage"
+              options={{ headerShown: false }} //title: "Home🏦",
+            />
+            <Stack.Screen
+              name="commponents/Home/LoginScreen"
+              options={{ headerShown: false }} //title: "Login🏦",
+            />
+            <Stack.Screen
+              name="commponents/Home/Signupscreen"
+              options={{ headerShown: false }} //title: "Become a client💳",
+            />
+            <Stack.Protected guard={isAuthenticated}>
+              <Stack.Screen
+                name="(protect)/(tabs)"
+                options={{ headerShown: false }}
+              ></Stack.Screen>
+            </Stack.Protected>
+          </Stack>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    </SafeAreaView>
   );
 }

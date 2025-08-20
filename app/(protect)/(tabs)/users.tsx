@@ -48,6 +48,9 @@ export default function UsersPage() {
             Alert.alert("Error", "Amount must be greater than 0");
             return;
           }
+          if (data.balance < amount) {
+            Alert.alert("Error", "you dont have enough funds to transfer!");
+          }
           try {
             await instance.put(`/transactions/transfer/${user.username}`, {
               //transfer fund
@@ -72,40 +75,46 @@ export default function UsersPage() {
             ? item.image
             : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
         }}
-        style={styles.avatar}
+        style={styles.avatarSquare}
       />
-      <Text style={styles.name}>{item.username}</Text>
-      <Text style={styles.balance}>Balance: {item.balance}</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => handleTransfer(item)}
-      >
-        <Text style={styles.buttonText}>Transfer</Text>
-      </TouchableOpacity>
+      <View style={styles.infoContainer}>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.name}>
+          {item.username}
+        </Text>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => handleTransfer(item)}
+        >
+          <Text style={styles.buttonText}>Transfer</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
   return (
-    <FlatList
-      data={data}
-      renderItem={renderItem}
-      contentContainerStyle={styles.container}
-      numColumns={1}
-    />
+    <View style={{ backgroundColor: "black" }}>
+      <FlatList
+        data={data}
+        renderItem={renderItem}
+        contentContainerStyle={styles.container}
+        numColumns={1}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    justifyContent: "center",
+    alignItems: "center", // center the cards
   },
   card: {
     backgroundColor: "#000",
     borderRadius: 12,
-    padding: 16,
-    margin: 8,
-    flex: 1,
+    padding: 12,
+    marginVertical: 8,
+    width: "90%", // make it responsive
+    flexDirection: "row", // horizontal layout
     alignItems: "center",
     shadowColor: "#FFD700",
     shadowOffset: { width: 0, height: 2 },
@@ -113,31 +122,38 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-  avatar: {
+
+  avatarSquare: {
     width: 80,
     height: 80,
-    borderRadius: 40,
-    marginBottom: 12,
+    borderRadius: 8, // square with slight rounding
     borderWidth: 2,
     borderColor: "#FFD700",
+    marginRight: 12,
   },
+
+  infoContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
+
   name: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#FFD700",
-    marginBottom: 4,
+    marginBottom: 8,
   },
-  balance: {
-    fontSize: 14,
-    color: "#FFD700",
-    marginBottom: 12,
-  },
+
   button: {
     backgroundColor: "#FFD700",
     paddingVertical: 6,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 8,
+    height: 36,
+    justifyContent: "center",
+    alignSelf: "flex-start",
   },
+
   buttonText: {
     color: "#000",
     fontWeight: "bold",
