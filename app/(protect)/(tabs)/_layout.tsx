@@ -14,7 +14,11 @@ const ProtectedLayout = () => {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarStyle: { backgroundColor: "#111", borderTopColor: "#000000ff" },
+          tabBarStyle: {
+            backgroundColor: "black",
+            borderTopColor: "#fafaf7ff",
+            borderTopWidth: 1,
+          },
           tabBarActiveTintColor: "#FFD700",
           tabBarInactiveTintColor: "#fff",
         }}
@@ -54,7 +58,12 @@ const ProtectedLayout = () => {
           options={{
             title: "Users",
             tabBarIcon: ({ color, size }) => (
-              <Ionicons name="people-outline" size={size} color={color} />
+              <Ionicons
+                name="people-outline"
+                size={size}
+                color={color}
+                style={{ justifyContent: "center" }}
+              />
             ),
           }}
         />

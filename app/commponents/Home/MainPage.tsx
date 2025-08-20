@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   Linking,
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -33,6 +34,7 @@ type UserData = {
 const MainPage = () => {
   const queryClient = useQueryClient();
   const phoneNumber = "+965 1 888 666";
+
   const handleCall = () => {
     const url = `tel:${phoneNumber}`;
     Linking.canOpenURL(url)
@@ -106,6 +108,34 @@ const MainPage = () => {
       },
     ]);
   };
+
+  //  Ads State or Modal
+  const [selectedAd, setSelectedAd] = useState<null | {
+    image: string;
+    discount: string;
+    description: string;
+  }>(null);
+
+  const ads = [
+    {
+      image:
+        "https://brandslogos.com/wp-content/uploads/images/large/emirates-airlines-logo-1.png",
+      discount: "10% OFF",
+      description: "Enjoy 10% off your Emirates Airlines flight bookings!",
+    },
+    {
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4lRwRJe1JwHTJA3HqCkOGv0m_MFf39eq02Q&s",
+      discount: "15% OFF",
+      description: "Save 15% on hotel stays when booking through our app.",
+    },
+    {
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm8iDtcT54Vp8ImvTddzQssFfj5YRDEnlk7Q&s",
+      discount: "20% OFF",
+      description: "Get 20% off your next order with Pick!",
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -196,40 +226,46 @@ const MainPage = () => {
           style={styles.adsRow}
           contentContainerStyle={{ paddingHorizontal: 10 }}
         >
-          {/*  Airways ad */}
-          <View style={styles.adsContainer}>
-            <Image
-              source={{
-                uri: "https://brandslogos.com/wp-content/uploads/images/large/emirates-airlines-logo-1.png",
-              }}
-              style={styles.adsCard}
-            />
-            <Text style={styles.adsDiscount}>10% OFF</Text>
-          </View>
-
-          {/* hotel ad */}
-          <View style={styles.adsContainer}>
-            <Image
-              source={{
-                uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR4lRwRJe1JwHTJA3HqCkOGv0m_MFf39eq02Q&s",
-              }}
-              style={styles.adsCard}
-            />
-            <Text style={styles.adsDiscount}>15% OFF</Text>
-          </View>
-
-          {/* Example ad 2 */}
-          <View style={styles.adsContainer}>
-            <Image
-              source={{
-                uri: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTm8iDtcT54Vp8ImvTddzQssFfj5YRDEnlk7Q&s",
-              }}
-              style={styles.adsCard}
-            />
-            <Text style={styles.adsDiscount}>20% OFF</Text>
-          </View>
+          {ads.map((ad, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => setSelectedAd(ad)}
+              style={styles.adsContainer}
+            >
+              <Image source={{ uri: ad.image }} style={styles.adsCard} />
+              <Text style={styles.adsDiscount}>{ad.discount}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </ScrollView>
+
+      {/* Modal for ad details */}
+      <Modal
+        visible={!!selectedAd}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSelectedAd(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Image
+              source={{ uri: selectedAd?.image }}
+              style={styles.modalImage}
+            />
+            <Text style={styles.modalDiscount}>{selectedAd?.discount}</Text>
+            <Text style={styles.modalDescription}>
+              {selectedAd?.description}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.closeBtn}
+              onPress={() => setSelectedAd(null)}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -306,5 +342,42 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 5,
     fontSize: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 20,
+    width: "85%",
+    alignItems: "center",
+  },
+  modalImage: {
+    width: 200,
+    height: 120,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  modalDiscount: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFD700",
+    marginBottom: 10,
+  },
+  modalDescription: {
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 15,
+    color: "#333",
+  },
+  closeBtn: {
+    backgroundColor: "#000",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
   },
 });
