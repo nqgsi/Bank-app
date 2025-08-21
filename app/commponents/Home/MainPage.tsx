@@ -3,10 +3,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
+  Animated,
   Dimensions,
+  Easing,
   Linking,
   Modal,
   SafeAreaView,
@@ -19,7 +21,6 @@ import {
 
 const screenWidth = Dimensions.get("window").width;
 
-// Fetch user profile
 const fetchProfile = async () => {
   const res = await instance.get("/auth/me");
   return res.data;
@@ -31,9 +32,105 @@ type UserData = {
   username?: string;
 };
 
+type Prize = { label: string; amount: number; weight: number };
+
+const prizes: Prize[] = [
+  { label: "You lost $100", amount: -100, weight: 3 },
+  { label: "You won $0", amount: 0, weight: 3 },
+  { label: "You lost $50", amount: -50, weight: 3 },
+  { label: "You won $1000", amount: 1000, weight: 1 },
+];
+
+const ITEM_HEIGHT = 64;
+const SPIN_CYCLES = 12;
+
 const MainPage = () => {
   const queryClient = useQueryClient();
   const phoneNumber = "+965 1 888 666";
+  const { data, refetch } = useQuery<UserData>({
+    queryKey: ["profile"],
+    queryFn: fetchProfile,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+  });
+
+  const [showActions, setShowActions] = useState(false);
+  const [showWheel, setShowWheel] = useState(false);
+  const [selectedAd, setSelectedAd] = useState<any | null>(null); // new state for ads modal
+
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const bounceAnim = useRef(new Animated.Value(1)).current;
+  const reelAnim = useRef(new Animated.Value(0)).current;
+
+  const reelItems: Prize[] = React.useMemo(() => {
+    const base = [];
+    for (let i = 0; i < SPIN_CYCLES; i++) base.push(...prizes);
+    return base;
+  }, []);
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.spring(bounceAnim, {
+          toValue: 1.12,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+        Animated.spring(bounceAnim, {
+          toValue: 1,
+          friction: 3,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  const pickWeightedIndex = () => {
+    const total = prizes.reduce((s, p) => s + p.weight, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < prizes.length; i++) {
+      if (r < prizes[i].weight) return i;
+      r -= prizes[i].weight;
+    }
+    return prizes.length - 1;
+  };
+
+  const spinJackpot = async () => {
+    const prizeIndex = pickWeightedIndex();
+    const prize = prizes[prizeIndex];
+
+    reelAnim.setValue(0);
+
+    const targetRow = SPIN_CYCLES * prizes.length + prizeIndex;
+    const finalOffset = -targetRow * ITEM_HEIGHT;
+
+    Animated.timing(reelAnim, {
+      toValue: finalOffset,
+      duration: 3500,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start(async () => {
+      try {
+        if (prize.amount > 0) {
+          await instance.put("/transactions/deposit", { amount: prize.amount });
+          Alert.alert("Congrats!", `You won $${prize.amount}`);
+        } else if (prize.amount < 0) {
+          await instance.put("/transactions/withdraw", {
+            amount: Math.abs(prize.amount),
+          });
+          Alert.alert("Oops!", `You lost $${Math.abs(prize.amount)}`);
+        } else {
+          Alert.alert("Oops!", "You won nothing $0");
+        }
+      } catch {
+        Alert.alert("you are in debt ", "We forgive you");
+      }
+
+      refetch();
+      setShowWheel(false);
+      reelAnim.setValue(0);
+    });
+  };
 
   const handleCall = () => {
     const url = `tel:${phoneNumber}`;
@@ -47,15 +144,6 @@ const MainPage = () => {
       })
       .catch((err) => console.error(err));
   };
-
-  const { data, refetch } = useQuery<UserData>({
-    queryKey: ["profile"],
-    queryFn: fetchProfile,
-    refetchOnMount: "always",
-    refetchOnWindowFocus: true,
-  });
-
-  const [showActions, setShowActions] = useState(false);
 
   const handleDeposit = () => {
     Alert.prompt("Deposit Amount", "Enter amount to deposit", [
@@ -75,7 +163,7 @@ const MainPage = () => {
             Alert.alert("Success", "Deposit successful!");
             refetch();
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
-          } catch (error) {
+          } catch {
             Alert.alert("Error", "Deposit failed");
           }
         },
@@ -101,20 +189,13 @@ const MainPage = () => {
             Alert.alert("Success", "Withdraw successful!");
             refetch();
             queryClient.invalidateQueries({ queryKey: ["transactions"] });
-          } catch (error) {
+          } catch {
             Alert.alert("Error", "Withdraw failed");
           }
         },
       },
     ]);
   };
-
-  //  Ads State or Modal
-  const [selectedAd, setSelectedAd] = useState<null | {
-    image: string;
-    discount: string;
-    description: string;
-  }>(null);
 
   const ads = [
     {
@@ -204,7 +285,7 @@ const MainPage = () => {
           </View>
         )}
 
-        {/* Discount Card */}
+        {/* Discount Card + Spin Button */}
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -217,6 +298,17 @@ const MainPage = () => {
               You have a discount because you are our client
             </Text>
           </View>
+
+          <View style={{ width: 24 }} />
+
+          <Animated.View style={{ transform: [{ scale: bounceAnim }] }}>
+            <TouchableOpacity
+              style={styles.wheelBtn}
+              onPress={() => setShowWheel(true)}
+            >
+              <Text style={styles.wheelBtnText}>🎁 Spin</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </ScrollView>
 
         {/* Ads Section */}
@@ -229,7 +321,7 @@ const MainPage = () => {
           {ads.map((ad, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => setSelectedAd(ad)}
+              onPress={() => setSelectedAd(ad)} // open ad modal
               style={styles.adsContainer}
             >
               <Image source={{ uri: ad.image }} style={styles.adsCard} />
@@ -239,7 +331,64 @@ const MainPage = () => {
         </ScrollView>
       </ScrollView>
 
-      {/* Modal for ad details */}
+      {/* Jackpot Modal */}
+      <Modal
+        visible={showWheel}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowWheel(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { width: 300 }]}>
+            <Text style={{ fontWeight: "bold", marginBottom: 12 }}>
+              Eyes on the prize 👀
+            </Text>
+
+            <View style={styles.windowContainer}>
+              <View style={styles.centerLine} />
+              <View style={styles.rightArrow} />
+
+              <View style={styles.window}>
+                <Animated.View
+                  style={{ transform: [{ translateY: reelAnim }] }}
+                >
+                  {reelItems.map((p, i) => (
+                    <View key={i} style={styles.row}>
+                      <Text
+                        style={[
+                          styles.rowText,
+                          p.amount > 0
+                            ? styles.winText
+                            : p.amount < 0
+                            ? styles.lossText
+                            : styles.zeroText,
+                        ]}
+                      >
+                        {p.label}
+                      </Text>
+                    </View>
+                  ))}
+                </Animated.View>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.closeBtn, { marginTop: 18 }]}
+              onPress={spinJackpot}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Spin</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.closeBtn, { marginTop: 10 }]}
+              onPress={() => setShowWheel(false)}
+            >
+              <Text style={{ color: "#fff", fontWeight: "bold" }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Ads Modal */}
       <Modal
         visible={!!selectedAd}
         transparent
@@ -258,7 +407,7 @@ const MainPage = () => {
             </Text>
 
             <TouchableOpacity
-              style={styles.closeBtn}
+              style={[styles.closeBtn, { marginTop: 15 }]}
               onPress={() => setSelectedAd(null)}
             >
               <Text style={{ color: "#fff", fontWeight: "bold" }}>Close</Text>
@@ -312,23 +461,29 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   actionText: { fontSize: 16, fontWeight: "bold", color: "#000" },
+
   discountRow: { marginBottom: 15 },
   discountCard: {
-    backgroundColor: "#FFD700",
+    backgroundColor: "#f8f7f0ff",
     padding: 15,
     borderRadius: 20,
     width: 250,
     justifyContent: "center",
   },
-  discountTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
+  discountTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 5 },
+  discountText: { fontSize: 14, color: "#000" },
+
+  wheelBtn: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 18,
   },
-  discountText: {
-    fontSize: 14,
-    color: "#000",
-  },
+  wheelBtnText: { color: "#000", fontWeight: "bold" },
+
   adsRow: { marginBottom: 20 },
   adsContainer: { alignItems: "center", marginRight: 15 },
   adsCard: {
@@ -343,6 +498,7 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontSize: 16,
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
@@ -356,28 +512,70 @@ const styles = StyleSheet.create({
     width: "85%",
     alignItems: "center",
   },
-  modalImage: {
-    width: 200,
-    height: 120,
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  modalDiscount: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFD700",
-    marginBottom: 10,
-  },
-  modalDescription: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 15,
-    color: "#333",
-  },
   closeBtn: {
     backgroundColor: "#000",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 12,
   },
+
+  windowContainer: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  window: {
+    height: ITEM_HEIGHT,
+    width: "100%",
+    overflow: "hidden",
+    borderWidth: 2,
+    borderColor: "#FFD700",
+    borderRadius: 12,
+    backgroundColor: "#111",
+  },
+  row: {
+    height: ITEM_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  rowText: { fontSize: 18, fontWeight: "bold" },
+  winText: { color: "green" },
+  lossText: { color: "red" },
+  zeroText: { color: "#ccc" },
+
+  centerLine: {
+    position: "absolute",
+    height: 2,
+    width: "88%",
+    backgroundColor: "#FFD700",
+    zIndex: 3,
+  },
+
+  rightArrow: {
+    position: "absolute",
+    right: -2,
+    zIndex: 4,
+    width: 0,
+    height: 0,
+    borderTopWidth: 10,
+    borderBottomWidth: 10,
+    borderLeftWidth: 14,
+    borderTopColor: "transparent",
+    borderBottomColor: "transparent",
+    borderLeftColor: "black",
+  },
+
+  modalImage: {
+    width: 200,
+    height: 120,
+    resizeMode: "contain",
+    marginBottom: 10,
+  },
+  modalDiscount: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFD700",
+    marginBottom: 8,
+  },
+  modalDescription: { fontSize: 16, textAlign: "center", color: "#333" },
 });

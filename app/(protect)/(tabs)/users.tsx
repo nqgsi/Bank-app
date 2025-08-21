@@ -57,12 +57,15 @@ export default function UsersPage() {
               //transfer fund
               amount: numericAmount,
             });
-            Alert.alert("Success", "Transfer successful!");
+            Alert.alert("Success", `Transfer successful! to ${user.username}`);
             queryClient.invalidateQueries({ queryKey: ["users"] }); // this screen
             queryClient.invalidateQueries({ queryKey: ["profile"] }); // MainPage + ProfileScreen
             queryClient.invalidateQueries({ queryKey: ["transactions"] }); // this screen
           } catch (error) {
-            Alert.alert("Error", "Transfer failed");
+            Alert.alert(
+              "not enough funds",
+              "the funds in your balance is not enough!"
+            );
           }
         },
       },
