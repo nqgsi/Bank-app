@@ -3,6 +3,7 @@ import { getUsers } from "@/api/auth";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
+
 import {
   ActivityIndicator,
   Alert,
@@ -84,20 +85,21 @@ export default function UsersPage() {
       />
 
       <View style={styles.infoContainer}>
-        {/* 🔄 Changed: Username is now INSIDE the button instead of separate Text */}
+        {/* Changed: Username is now INSIDE the button instead of separate Text */}
+
         <TouchableOpacity
           style={styles.button}
           onPress={() => handleTransfer(item)}
         >
           {/*  Username displayed inside button */}
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <FontAwesome6 name="money-bill-transfer" size={15} color="black" />
             <Text
               numberOfLines={1}
               ellipsizeMode="tail"
-              style={[styles.buttonText, { marginLeft: 15 }]}
+              style={[styles.buttonText, { marginLeft: 10 }]}
             >
-              Transfer to :
+              Transfer to:
             </Text>
             <Text
               numberOfLines={1}
@@ -107,8 +109,9 @@ export default function UsersPage() {
                 {
                   color: "black",
                   fontWeight: "bold",
-                  fontSize: 17,
-                  marginLeft: 10,
+                  fontSize: 16,
+                  marginLeft: 5,
+                  flexShrink: 1,
                 },
               ]}
             >
@@ -139,7 +142,7 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#000",
-    borderRadius: 12,
+    borderRadius: 15,
     padding: 12,
     marginVertical: 8,
     width: "90%", // make it responsive
@@ -163,9 +166,9 @@ const styles = StyleSheet.create({
 
   infoContainer: {
     flex: 1,
-    flexDirection: "row", // 👈 put name + button in the same row
-    alignItems: "center", // 👈 align vertically centered
-    justifyContent: "space-around", // 👈 push them apart
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
   },
 
   name: {
@@ -181,6 +184,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 10,
     height: 36,
+    width: 250,
     justifyContent: "center",
     alignSelf: "flex-start",
   },

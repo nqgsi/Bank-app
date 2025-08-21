@@ -6,6 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { router } from "expo-router";
 import React, { useContext, useState } from "react";
 import {
+  Alert,
   StatusBar,
   StyleSheet,
   Text,
@@ -28,6 +29,9 @@ export default function LoginScreen() {
       console.log("stored Token", await getToken());
       setIsAuthenticated(true);
       router.push("/(protect)/(tabs)");
+    },
+    onError: () => {
+      Alert.alert("error", "you dont have an account ");
     },
   });
 

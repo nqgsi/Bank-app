@@ -1,9 +1,11 @@
-import { fetchProfile } from "@/api/auth";
+import { fetchProfile, updateProfile } from "@/api/auth";
 import AuthContext from "@/app/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import AntDesign from "@expo/vector-icons/AntDesign";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +22,26 @@ const ProfileScreen = () => {
     queryKey: ["profile"],
     queryFn: fetchProfile,
   });
+  const [image, setImage] = useState<string | null>(null);
+  const { mutate, isPending } = useMutation({
+    mutationFn: updateProfile,
+    mutationKey: ["profile"],
+  });
+  const pickImage = async () => {
+    // No permissions request is necessary for launching the image library
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images", "videos"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+    }
+  };
 
   const handleLogout = async () => {
     await SecureStore.deleteItemAsync("token");
@@ -38,11 +60,20 @@ const ProfileScreen = () => {
     <View style={styles.container}>
       {/* Profile Card */}
       <View style={styles.card}>
+        <TouchableOpacity
+          onPress={pickImage}
+          style={{ position: "absolute", top: 15, right: 15 }}
+        >
+          <AntDesign name="edit" size={24} color="white" />
+        </TouchableOpacity>
+
         <Image
           source={{
-            uri: data?.image
-              ? data.image
-              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
+            uri: image
+              ? image // picked image
+              : data?.image
+              ? data.image // server image
+              : "https://cdn-icons-png.flaticon.com/512/3135/3135715.png", // fallback
           }}
           style={styles.avatar}
         />

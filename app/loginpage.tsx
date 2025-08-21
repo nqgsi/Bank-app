@@ -10,6 +10,15 @@ import {
 } from "react-native";
 
 export default function App() {
+  // const { data, isLoading, isError } = useQuery({
+  //   queryKey: ["gettoken"],
+  //   queryFn: getToken,
+  // });
+
+  // const handelLogin = async () => {
+  //   await router.push("/commponents/Home/LoginScreen");
+  //   if (isError) return Alert.alert("error", " you dont Have acount");
+  // };
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />

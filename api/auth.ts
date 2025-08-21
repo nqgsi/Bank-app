@@ -43,6 +43,10 @@ const trancferToUser = async () => {
   const res = await instance.put("/transactions/transfer/<username>", {});
   return res.data;
 };
+const updateProfile = async (formData: FormData) => {
+  const res = await instance.put("/profile", formData);
+  return res.data;
+};
 
 // const profilescreen = async () => {
 //   const response = await instance.get("/auth/me");
@@ -56,5 +60,6 @@ export {
   login,
   signupscreen,
   trancferToUser,
+  updateProfile,
   UserInfo,
 };
