@@ -1,5 +1,6 @@
 import instance from "@/api";
 import { getUsers } from "@/api/auth";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import {
@@ -78,15 +79,39 @@ export default function UsersPage() {
         }}
         style={styles.avatarSquare}
       />
+
       <View style={styles.infoContainer}>
-        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.name}>
-          {item.username}
-        </Text>
+        {/* 🔄 Changed: Username is now INSIDE the button instead of separate Text */}
         <TouchableOpacity
           style={styles.button}
           onPress={() => handleTransfer(item)}
         >
-          <Text style={styles.buttonText}>Transfer</Text>
+          {/*  Username displayed inside button */}
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <FontAwesome6 name="money-bill-transfer" size={15} color="black" />
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[styles.buttonText, { marginLeft: 15 }]}
+            >
+              Transfer to :
+            </Text>
+            <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              style={[
+                styles.buttonText,
+                {
+                  color: "black",
+                  fontWeight: "bold",
+                  fontSize: 17,
+                  marginLeft: 10,
+                },
+              ]}
+            >
+              {item.username}
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
     </View>
@@ -106,7 +131,7 @@ export default function UsersPage() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    padding: 5,
     alignItems: "center", // center the cards
   },
   card: {
@@ -135,7 +160,9 @@ const styles = StyleSheet.create({
 
   infoContainer: {
     flex: 1,
-    justifyContent: "center",
+    flexDirection: "row", // 👈 put name + button in the same row
+    alignItems: "center", // 👈 align vertically centered
+    justifyContent: "space-around", // 👈 push them apart
   },
 
   name: {
@@ -148,8 +175,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: "#FFD700",
     paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 8,
+    paddingHorizontal: 30,
+    borderRadius: 10,
     height: 36,
     justifyContent: "center",
     alignSelf: "flex-start",
